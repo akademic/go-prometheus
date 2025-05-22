@@ -119,6 +119,62 @@ func TestPrometheus_Populate(t *testing.T) {
 				"incremented_counter{project=\"test_project\"} 7",
 			},
 		},
+		{
+			name: "counter with float value",
+			setupCounters: func(prom *Prometheus) {
+				counter := prom.NewCounter("float_counter", "Float counter", "gauge", nil)
+				counter.SetF(42.5)
+			},
+			expectedContains: []string{
+				"# HELP float_counter Float counter",
+				"# TYPE float_counter gauge",
+				"float_counter{project=\"test_project\"} 42.500000",
+			},
+		},
+		{
+			name: "counter with both int and float values - float takes precedence",
+			setupCounters: func(prom *Prometheus) {
+				counter := prom.NewCounter("mixed_counter", "Mixed counter", "gauge", nil)
+				counter.Set(100)
+				counter.SetF(3.14)
+			},
+			expectedContains: []string{
+				"# HELP mixed_counter Mixed counter",
+				"# TYPE mixed_counter gauge",
+				"mixed_counter{project=\"test_project\"} 3.140000",
+			},
+		},
+		{
+			name: "counter with zero float value shows int value",
+			setupCounters: func(prom *Prometheus) {
+				counter := prom.NewCounter("zero_float_counter", "Zero float counter", "counter", nil)
+				counter.Set(42)
+				counter.SetF(0.0)
+			},
+			expectedContains: []string{
+				"# HELP zero_float_counter Zero float counter",
+				"# TYPE zero_float_counter counter",
+				"zero_float_counter{project=\"test_project\"} 42",
+			},
+		},
+		{
+			name: "multiple counters with mixed value types",
+			setupCounters: func(prom *Prometheus) {
+				counter1 := prom.NewCounter("int_metric", "Integer metric", "counter", nil)
+				counter1.Set(100)
+
+				counter2 := prom.NewCounter("float_metric", "Float metric", "gauge", nil)
+				counter2.SetF(99.99)
+			},
+			expectedContains: []string{
+				"# HELP int_metric Integer metric",
+				"# TYPE int_metric counter",
+				"int_metric{project=\"test_project\"} 100",
+				"# HELP float_metric Float metric",
+				"# TYPE float_metric gauge",
+				"float_metric{project=\"test_project\"} 99.990000",
+			},
+		},
 	}
 
 	for _, tt := range tests {

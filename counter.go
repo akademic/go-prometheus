@@ -2,6 +2,7 @@ package prometheus
 
 type Counter struct {
 	valInt   uint64
+	valFloat float64
 	name     string
 	help     string
 	datatype string
@@ -27,4 +28,8 @@ func (c *Counter) IncC(count uint64) {
 
 func (c *Counter) Set(value uint64) {
 	c.valInt = value
+}
+
+func (c *Counter) SetF(value float64) {
+	c.valFloat = value
 }
