@@ -1,4 +1,4 @@
-module prometheus
+module github.com/akademic/prometheus
 
 go 1.24.1
 
