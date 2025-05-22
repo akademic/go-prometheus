@@ -12,4 +12,4 @@ type Config struct {
 	DumpPath     string
 }
 
-const DefaultDumpInterval = 60 * time.Second
+var DefaultDumpInterval = configjson.Duration{Duration: 60 * time.Second}
