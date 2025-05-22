@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"sort"
 	"time"
 )
 
@@ -55,16 +56,23 @@ func (prom *Prometheus) Populate() string {
 		}
 		metrics_str += fmt.Sprintf("%s", item.name)
 		if len(item.metadata) != 0 {
+			sortedKeys := prom.metadataKeys(item.metadata)
+
 			metrics_str += "{"
 			sep := ""
-			for md_key, md_val := range item.metadata {
+			for _, md_key := range sortedKeys {
+				md_val := item.metadata[md_key]
 				metrics_str += fmt.Sprintf("%s%s=\"%s\"", sep, md_key, md_val)
 				sep = ", "
 			}
 			metrics_str += "}"
 		}
 
-		metrics_str += fmt.Sprintf(" %d\n", item.valInt)
+		if item.valFloat != 0 {
+			metrics_str += fmt.Sprintf(" %f\n", item.valFloat)
+		} else {
+			metrics_str += fmt.Sprintf(" %d\n", item.valInt)
+		}
 	}
 
 	return metrics_str
@@ -72,6 +80,15 @@ func (prom *Prometheus) Populate() string {
 
 func (prom *Prometheus) register(counter *Counter) {
 	prom.counters = append(prom.counters, counter)
+}
+
+func (prom *Prometheus) metadataKeys(metadata map[string]string) []string {
+	keys := make([]string, 0, len(metadata))
+	for k := range metadata {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
 }
 
 func (prom *Prometheus) Start() {
