@@ -49,6 +49,8 @@ func NewAppMetrics(prom *Prometheus, ctx context.Context) *AppMetrics {
 }
 
 func (am *AppMetrics) Start(dumpPeriod time.Duration) {
+	am.Collect()
+
 	runtimestats_ticker := time.NewTicker(dumpPeriod)
 
 	for {
